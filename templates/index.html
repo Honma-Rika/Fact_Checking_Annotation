@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Evidence Annotation</title>
+    <link href="../static/styles/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/styles/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../static/styles/pretty-checkbox.min.css"/>
+    <link rel="stylesheet" href="../static/styles/index.css"/>
+    <script type="text/javascript">
+      function annotate_evidence(objButton){  
+          var doc_id = objButton.value;
+          var textBox = document.getElementById("evidence-" + doc_id);
+          var div_doc = document.getElementById("div-" + doc_id);
+          var button = document.getElementById("add-text-button-" + doc_id);
+          var hidden_value = document.getElementById("hidden-value-" + doc_id);
+          
+          if (div_doc.style.display == 'none') {
+            var selected_text = document.getSelection();
+            textBox.value = selected_text;
+            hidden_value.value = selected_text;
+            div_doc.style.display = 'block';
+            button.innerHTML = 'Remove Evidence'
+            console.log(button.innerHTML)
+          }
+          else {
+            textBox.value = "";
+            hidden_value = "";
+            div_doc.style.display = 'none';
+            button.innerHTML = 'Select Evidence'
+            console.log(button.innerHTML)
+          }
+      }
+    </script>
+  </head>
+  <body>
+
+    <div id="navbar" class="container">
+      <div id="title">
+        <h2 class="display-3" style="margin-top:20px; margin-bottom:0px;">
+          Evidence Annotation Platform
+        </h2>
+        <p>
+          <br />
+          designed by <a href="https://www.liangmingpan.com" target="_blank">Liangming Pan</a>
+          (<a href="liangmingpan@u.nus.edu" target="_blank"><i class="fa fa-envelope" aria-hidden="true"></i></a>,
+          <a href="https://twitter.com/PanLiangming" target="_blank"><i class="fa fa-twitter-square"></i></a>)
+          <br />
+          [<span id="description-button">Show Me Details!</span>]
+        </p>
+      </div>
+      <div id="description" style="display:none">
+        Full annotation guideline. TBD. <br/>
+        Full annotation guideline. TBD. <br/>
+        Full annotation guideline. TBD. <br/>
+        Full annotation guideline. TBD. <br/>
+        Full annotation guideline. TBD. 
+      </div>
+      <p>
+        <b>Instructions:</b> Select the evidence paragraph and sentence for the given claim from the top Wikipedia paragraphs returned by the system.
+        <br />
+      </p>
+    </div>
+    <div class="container" id="container" role="main">
+
+      <!-- Mode -->
+      <div id="mode-container" class="radio-box-container">
+        <div class="state p-primary-o">
+          <label>Current User:</label>
+          {% if current_user.is_authenticated %}
+              {{ current_user.get_id() }}
+          {% endif %}
+        </div>
+
+        <div class="state p-primary-o">
+          <label>Number of Completed Annotations: </label>
+            {{count}}
+        </div>
+
+        <div id="k-div" style="float: right;">
+          <form method="POST" action="{{ url_for('logout') }}">
+            <button type="submit" style="float: right;">Logout</button>
+          </form>
+        </div>
+      </div>
+
+      <div>
+        <p>
+          ID: <span id="sample-button">{{ sample['id'] }}</span>
+        </p>
+      </div>
+      <div id="sample" style="display:none">
+        <p><strong>Question:</strong> {{sample['question']}}</p>
+        <p><strong>Answer:</strong> {{sample['answer']}}</p>
+        <strong>Decomposed Facts:</strong> <br/>
+        {% for fact in sample['facts'] %}
+            <p style="margin-left: 40px;">{{fact}}</p>
+        {% endfor %}
+        <br/>
+      </div>
+
+      <form class="form-signin" method="POST" action="{{ url_for('submit', sample=sample['user'] + '\t' +sample['uid']|string) }}">
+        <!-- Textarea for the claim -->
+        <div class="input-group" id="select-question">
+          <input class="editOption" class="editable" value="{{ sample['claim'] }}" disabled />
+          <span class="input-group-addon"></span>
+        </div>
+
+        <button id='submit' class="btn btn-default btn-lg btn-block" type="submit">Submit</button>
+        <br/>
+
+        <div id="answer">
+          {% for doc in documents %}
+          <div class="panel panel-default">
+            <div class="panel-heading">Title: <em>{{doc['title']}}</em>
+              <span class="footnote-sm"><button type="button" id="add-text-button-{{doc['id']}}" value="{{doc['id']}}" onclick="annotate_evidence(this)">Select Evidence</button></span>
+            </div>
+            <div class="panel-body">{{doc['passage']}}
+              <div id="div-{{doc['id']}}" style="display:none"><br/><em>Selected Evidence: </em>
+                <textarea class="form-control" id="evidence-{{doc['id']}}" aria-label="Selected Evidence:" value="" disabled></textarea>
+                <input value = "" type="hidden" name="{{doc['id']}}" id="hidden-value-{{doc['id']}}">
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </form>
+
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../static/jquery-3.1.0.min.js"></script>
+    <script src="../static/jszip.min.js"></script>
+    <script src="../static/index.js"></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-141683611-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'UA-141683611-1');
+    </script>
+  </body>
+</html>
+
+

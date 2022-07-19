@@ -1,0 +1,38 @@
+<!-- <form action="{{ url_for('login') }}" method="POST">
+    <input type="text" name="username" id="username" placeholder="Username"></input>
+    <input type="password" name="password" id="password" placeholder="Password"></input>
+    <input type="submit" name="submit"></input>
+</form> -->
+
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<link href="{{ url_for('static', filename='css/login.css') }}" rel="stylesheet" id="login-css"></link>
+<!------ Include the above in your HEAD tag ---------->
+
+<!doctype html>
+<title>Login Sample</title>
+
+
+<div class="wrapper fadeInDown">
+  <div id="formContent">
+    <!-- Tabs Titles -->
+
+    <!-- Icon -->
+    <div class="fadeIn first">
+      <img src="{{ url_for('static', filename='icon/next-logo.png') }}" id="icon" alt="User Icon" />
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+    <div>{{ messages[0] }}</div>
+    {% endwith %}
+
+    <!-- Login Form -->
+    <form action="{{ url_for('login') }}" method="POST">
+        <input type="text" class="fadeIn second" name="username" id="username" placeholder="username"></input>
+        <input type="password" class="fadeIn third" name="password" id="password" placeholder="Password"></input>
+        <input type="submit" class="fadeIn fourth" name="submit" value="Login"></input>
+    </form>
+
+  </div>
+</div>
