@@ -24,7 +24,7 @@ users = [
 ###############################################
 DATA_PATH = './data/input_raw.json'
 DATA_DESTINATION = './data/outputs_raw.json'
-CORPUS_PATH = '/mnt/edward/data/liangming/Implicit_Reasoning_FV/data_processing/StrategyQA/corpus/wiki36M/wiki36M_index'
+CORPUS_PATH = 'D:/Work/WING_Intern/Evidence_Annotation'
 ###############################################
 
 WORK_LOAD = {user['username']: user['work_range'] for user in users}
@@ -33,6 +33,7 @@ WORK_LOAD = {user['username']: user['work_range'] for user in users}
 print('Loading the pyserini searcher...')
 searcher = SimpleSearcher(CORPUS_PATH)
 
+# get raw text of the docs
 def get_document(doc_id):
     doc = searcher.doc(doc_id)
     sample = json.loads(doc.raw())
@@ -48,6 +49,8 @@ dataset_lookup = {}
 status_lookup = {}
 for sample in dataset:
     ID = sample['uid']
+
+    # set status and original text by uid
     if ID not in dataset_lookup:
         dataset_lookup[ID] = sample
         dataset_lookup[ID]['status'] = 0
@@ -84,6 +87,7 @@ print('Loading annotations from the result files...')
 with open(DATA_DESTINATION, 'r') as f:
     dataset_ = [json.loads(line) for line in f]
 
+# mark the annotated items
 for d in dataset_:
     ALL_DATA[d['user']][d['uid']]['status'] = 1
     ALL_DATA[d['user']][d['uid']]['evidence_paragraphs'] = d['evidence_paragraphs']
@@ -95,17 +99,6 @@ print("All data are loaded into memory")
 class User(UserMixin):
     pass
 
-def query_user(username):
-    for user in users:
-        if user['username'] == username:
-            return user
-
-def update_count(username):
-    for i, u in enumerate(users):
-        if u['username'] == username:
-            users[i]['count'] += 1
-            break
-
 @login_manager.user_loader
 def load_user(username):
     if query_user(username) is not None:
@@ -116,7 +109,6 @@ def load_user(username):
 @login_manager.unauthorized_handler
 def unauthorized_handler():
     return redirect(url_for('login'))
-
 
 @app.errorhandler(401)
 def custom_401(error):
