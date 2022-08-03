@@ -19,10 +19,10 @@ login_manager.login_message_category = "info"
 users = [
     {'username': 'LXY', 'password': '123456', 'count': 0, 'work_range': [0, 2000]},
     {'username': 'PLM', 'password': '123456', 'count': 0, 'work_range': [2000, 4000]}
-]
+]       # TODO: change into dict
 
 ###############################################
-DATA_PATH = './data/input_raw.json'
+DATA_PATH = './data/input_raw.json'     # './data/strategyqa_dataset/strategyqa_train.json'
 DATA_DESTINATION = './data/outputs_raw.json'
 CORPUS_PATH = 'D:/Work/WING_Intern/Evidence_Annotation'
 ###############################################
@@ -48,28 +48,27 @@ with open(DATA_PATH, 'r') as f:
 dataset_lookup = {}
 status_lookup = {}
 for sample in dataset:
-    ID = sample['uid']
+    ID = sample['uid']      # qid
 
     # set status and original text by uid
     if ID not in dataset_lookup:
         dataset_lookup[ID] = sample
         dataset_lookup[ID]['status'] = 0
         dataset_lookup[ID]['evidence_paragraphs'] = []
+
     status_lookup[ID] = False
 
 # Each user will have its own copy of the whole dataset
 ALL_DATA = {}
 for user in users:
-    username = user['username']
-    ALL_DATA[username] = copy.deepcopy(dataset_lookup)
+    ALL_DATA[user['username']] = copy.deepcopy(dataset_lookup)
 
 # This checks whether a whole data sample is finished
 # 0: not finished
 # 1: finished
 STATUS = {}
 for user in users:
-    username = user['username']
-    STATUS[username] = copy.deepcopy(status_lookup)
+    STATUS[user['username']] = copy.deepcopy(status_lookup)
 
 def query_user(username):
     for user in users:
@@ -146,7 +145,7 @@ def get_fresh_data(user):
     work_range = WORK_LOAD[user]
     for index, item in enumerate(STATUS[user].items()):
         ID, status = item
-        if status == False and index >= work_range[0] and index < work_range[1]:
+        if not status and index >= work_range[0] and index < work_range[1]:
             return ID
     return -1
 
