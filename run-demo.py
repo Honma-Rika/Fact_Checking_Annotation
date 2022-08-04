@@ -16,39 +16,48 @@ login_manager.login_view = 'login'
 login_manager.login_message = 'Unauthorized User'
 login_manager.login_message_category = "info"
 
-users = [
-    {'username': 'LXY', 'password': '123456', 'count': 0, 'work_range': [0, 2000]},
-    {'username': 'PLM', 'password': '123456', 'count': 0, 'work_range': [2000, 4000]}
-]       # TODO: change into dict
+users = {
+    'LXY': {'password': '123456', 'count': 0, 'work_range': [0, 2000]},
+    'PLM': {'password': '123456', 'count': 0, 'work_range': [2000, 4000]}
+}       # TODO: change into dict
 
 ###############################################
 DATA_PATH = './data/input_raw.json'     # './data/strategyqa_dataset/strategyqa_train.json'
-DATA_DESTINATION = './data/outputs_raw.json'
-CORPUS_PATH = 'D:/Work/WING_Intern/Evidence_Annotation'
+DATA_DESTINATION = './data/outputs_raw.json'    # './data/strategyqa_dataset/strategyqa_output.json'
+CORPUS_PATH = 'D:/Work/WING_Intern/Evidence_Annotation'     # './data/strategyqa_dataset/strategyqa_train_paragraphs.json'
 ###############################################
 
-WORK_LOAD = {user['username']: user['work_range'] for user in users}
-
-# load the pyserini searcher
-print('Loading the pyserini searcher...')
-searcher = SimpleSearcher(CORPUS_PATH)
-
-# get raw text of the docs
-def get_document(doc_id):
-    doc = searcher.doc(doc_id)
-    sample = json.loads(doc.raw())
-    text = sample['contents'].strip()
-    return text
+# # load the pyserini searcher
+# print('Loading the pyserini searcher...')
+# searcher = SimpleSearcher(CORPUS_PATH)
 
 # load dataset and initilize the annotation status
 print('Loading the dataset... (without annotations)')
 with open(DATA_PATH, 'r') as f:
     dataset = json.load(f)
 
+with open(CORPUS_PATH, 'r') as f:
+    paragraphs = json.load(f)
+
+# get raw text of the docs
+def get_document(title):
+    doc = paragraphs.get(title)
+    text = doc['content'].strip()
+    return text
+
+def query_user(username):
+    return users.get(username)
+
+def update_count(username):
+    if users.get(username):
+        users[username]['count'] += 1
+
+
+
 dataset_lookup = {}
 status_lookup = {}
 for sample in dataset:
-    ID = sample['uid']      # qid
+    ID = sample['qid']
 
     # set status and original text by uid
     if ID not in dataset_lookup:
@@ -61,25 +70,14 @@ for sample in dataset:
 # Each user will have its own copy of the whole dataset
 ALL_DATA = {}
 for user in users:
-    ALL_DATA[user['username']] = copy.deepcopy(dataset_lookup)
+    ALL_DATA[user] = copy.deepcopy(dataset_lookup)
 
 # This checks whether a whole data sample is finished
 # 0: not finished
 # 1: finished
 STATUS = {}
 for user in users:
-    STATUS[user['username']] = copy.deepcopy(status_lookup)
-
-def query_user(username):
-    for user in users:
-        if user['username'] == username:
-            return user
-
-def update_count(username):
-    for i, u in enumerate(users):
-        if u['username'] == username:
-            users[i]['count'] += 1
-            break
+    STATUS[user] = copy.deepcopy(status_lookup)
 
 # loading existing annotations
 print('Loading annotations from the result files...')
@@ -142,7 +140,7 @@ def logout():
 app.secret_key = '1234567'
 
 def get_fresh_data(user):
-    work_range = WORK_LOAD[user]
+    work_range = users[user]['work_range']
     for index, item in enumerate(STATUS[user].items()):
         ID, status = item
         if not status and index >= work_range[0] and index < work_range[1]:
