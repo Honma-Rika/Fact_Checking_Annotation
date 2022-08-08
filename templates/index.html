@@ -41,7 +41,7 @@
     <div id="navbar" class="container">
       <div id="title">
         <h2 class="display-3" style="margin-top:20px; margin-bottom:0px;">
-          Evidence Annotation Platform
+          Evidence Annotation Platform for StrategyQA
         </h2>
         <p>
           <br />
@@ -89,10 +89,12 @@
 
       <div>
         <p>
-          ID: <span id="sample-button">{{ sample['id'] }}</span>
+          ID: <span id="sample-button">{{ sample['qid'] }}</span>
         </p>
       </div>
-      <div id="sample" style="display:none">
+
+      <div id="sample">
+        <!-- style="display:none"> -->
         <p><strong>Question:</strong> {{sample['question']}}</p>
         <p><strong>Answer:</strong> {{sample['answer']}}</p>
         <strong>Decomposed Facts:</strong> <br/>
@@ -102,10 +104,12 @@
         <br/>
       </div>
 
-      <form class="form-signin" method="POST" action="{{ url_for('submit', sample=sample['user'] + '\t' +sample['uid']|string) }}">
+      <form class="form-signin" method="POST" action="{{ url_for('submit', user=user, uid=uid, sample=sample) }}">
         <!-- Textarea for the claim -->
         <div class="input-group" id="select-question">
-          <input class="editOption" class="editable" value="{{ sample['claim'] }}" disabled />
+          {% for decomp in sample['decomposition'] %}
+            <input class="editOption" class="editable" value="{{ decomp }}" disabled />
+          {% endfor %}
           <span class="input-group-addon"></span>
         </div>
 
