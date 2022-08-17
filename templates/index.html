@@ -16,24 +16,24 @@
           // var textBox = document.getElementById("evidence-" + doc_id);
           var div_doc = document.getElementById("div-" + doc_id);
           var button = document.getElementById("add-text-button-" + doc_id);
-          var hidden_value = document.getElementById("hidden-value-" + doc_id);
+          // var hidden_value = document.getElementById("hidden-value-" + doc_id);
           
-          if (button.style.backgroundColor == '#FFFFFF') {
+          if (div_doc.style.display == 'none') {
             // var selected_text = document.getSelection();
             // textBox.value = selected_text;
-            hidden_value.value = objButton.doc_content;
+            // hidden_value.value = objButton.doc_content;
             div_doc.style.display = 'block';
-            button.style.backgroundColor = '#FFFFFA';
-            button.style.color = '#7FFFAA';
+            // button.style.backgroundColor = '#FFFFFA';
+            button.style.color = '#1BB50C';
             button.innerHTML = '✔ Remove Evidence';
             console.log(button.innerHTML)
           }
           else {
             // textBox.value = "";
-            hidden_value = "";
+            // hidden_value = "";
             div_doc.style.display = 'none';
-            button.style.backgroundColor = '#FFFFFF';
-            button.style.color = '#FF6347';
+            // button.style.backgroundColor = '#FFFFFF';
+            button.style.color = '#000000';
             button.innerHTML = 'Select Evidence';
             console.log(button.innerHTML)
           }
@@ -125,13 +125,13 @@
           <div class="panel panel-default">
             <div class="panel-heading">Title: <em>{{doc['title']}}</em>
               <span class="footnote-sm">
-                <button type="button" id="add-text-button-{{doc['id']}}" style="background:#FFFFFF" value="{{doc['id']}}" doc_content="{{doc['passage']}}" onclick="annotate_evidence(this)">Select Evidence</button>
+                <button type="button" id="add-text-button-{{doc['id']}}" value="{{doc['id']}}" onclick="annotate_evidence(this)">Select Evidence</button>
               </span>
             </div>
             <div class="panel-body">{{doc['passage']}}
-              <div id="div-{{doc['id']}}" style="display:none"><br/><em>Selected Evidence: </em>
-                <!-- <textarea class="form-control" id="evidence-{{doc['id']}}" style="display:none" aria-label="Selected Evidence:" value="" disabled></textarea> -->
-                <input value = "" type="hidden" name="{{doc['id']}}" id="hidden-value-{{doc['id']}}">
+              <div id="div-{{doc['id']}}" style="display:none"><br/><em></em>
+                <textarea class="form-control" id="evidence-{{doc['id']}}" style="display:none" aria-label="Selected Evidence:" value="" disabled></textarea>
+                <input value="{{doc['passage']}}" type="hidden" name="{{doc['id']}}" id="hidden-value-{{doc['id']}}">
               </div>
             </div>
           </div>

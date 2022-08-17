@@ -18,8 +18,8 @@ login_manager.login_message = 'Unauthorized User'
 login_manager.login_message_category = "info"
 
 users = {
-    'LXY': {'password': '123456', 'count': 0, 'work_range': [0, 2000]},
-    'PLM': {'password': '123456', 'count': 0, 'work_range': [2000, 4000]}
+    'LXY': {'password': '123456', 'count': 0, 'work_range': [0, 5000]},
+    'PLM': {'password': '123456', 'count': 0, 'work_range': [0, 5000]}
 }
 
 ###############################################
@@ -59,13 +59,13 @@ dataset_lookup = {}
 for uid, sample in enumerate(dataset):
     # set status and original text by uid
     if uid not in dataset_lookup:
-        candidate_evidence = []
+        candidate_evidence = set()
         for annotation in sample['evidence']:
             for decomposition_step in annotation:
                 for item in decomposition_step:
                     if isinstance(item, list):
                         for doc_id in item:
-                            candidate_evidence.append(doc_id)
+                            candidate_evidence.add(doc_id)
 
         dataset_lookup[uid] = sample
         dataset_lookup[uid]['uid'] = uid
@@ -84,7 +84,7 @@ print('Loading annotations from the result files...')
 if not os.path.exists(DATA_DESTINATION):
     os.system(r'touch {}'.format(DATA_DESTINATION))
 
-with open(DATA_DESTINATION, 'r') as f:
+with open(DATA_DESTINATION, 'r', encoding='utf-8') as f:
     # mark the annotated items
     if f:
         for line in f:
@@ -195,13 +195,14 @@ def submit(user, uid, sample):
 
 
     # Write to output file
-    with open(DATA_DESTINATION, 'a+') as filed:
+    with open(DATA_DESTINATION, 'a+', encoding='utf-8') as filed:
         data_sample = {
                         'user': user, 'id': qid, 'uid': uid, 
                         'decomposition': sample['decomposition'], 
                         'evidence_paragraphs': annotations
                     }
         filed.write(json.dumps(data_sample, ensure_ascii=False) + '\n')
+    
     print('Writing data to file...')
 
     return redirect(url_for('home', previous_uid=uid))
