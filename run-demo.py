@@ -18,27 +18,20 @@ login_manager.login_message = 'Unauthorized User'
 login_manager.login_message_category = "info"
 
 users = {
-    'LXY': {'password': '123456', 'count': 0, 'work_range': [0, 5000]},
-    'PLM': {'password': '123456', 'count': 0, 'work_range': [0, 5000]}
+    'LXY': {'password': '123456', 'count': 0, 'work_range': [0, 15000]},
+    'PLM': {'password': '123456', 'count': 0, 'work_range': [0, 15000]}
 }
+
+dataset_lookup = {}
+ALL_DATA = {}
+dataset = None
+paragraphs = None
 
 ###############################################
 DATA_PATH = './data/strategyqa_dataset/strategyqa_train.json'
 DATA_DESTINATION = './data/strategyqa_dataset/strategyqa_output.json'
 CORPUS_PATH = './data/strategyqa_dataset/strategyqa_train_paragraphs.json'
 ###############################################
-
-# # load the pyserini searcher
-# print('Loading the pyserini searcher...')
-# searcher = SimpleSearcher(CORPUS_PATH)
-
-# load dataset and initilize the annotation status
-print('Loading the dataset... (without annotations)')
-with open(DATA_PATH, 'r', encoding='utf-8') as f:
-    dataset = json.load(f)
-
-with open(CORPUS_PATH, 'r') as f:
-    paragraphs = json.load(f)
 
 # get raw text of the docs
 def get_document(title):
@@ -54,28 +47,36 @@ def update_count(username):
     if users.get(username):
         users[username]['count'] += 1
 
+# load dataset and initilize the annotation status
+print('Loading the dataset... (without annotations)')
+with open(DATA_PATH, 'r', encoding='utf-8') as f:
+    dataset = json.load(f)
 
-dataset_lookup = {}
-for uid, sample in enumerate(dataset):
+with open(CORPUS_PATH, 'r') as f:
+    paragraphs = json.load(f)
+    
+temp_uid = 0
+for sample in dataset[:5]:
     # set status and original text by uid
-    if uid not in dataset_lookup:
-        candidate_evidence = set()
-        for annotation in sample['evidence']:
-            for decomposition_step in annotation:
-                for item in decomposition_step:
-                    if isinstance(item, list):
-                        for doc_id in item:
-                            candidate_evidence.add(doc_id)
+    candidate_evidence = set()
+    for annotation in sample['evidence']:
+        for decomposition_step in annotation:
+            for item in decomposition_step:
+                if isinstance(item, list):
+                    for doc_id in item:
+                        candidate_evidence.add(doc_id)
 
-        dataset_lookup[uid] = sample
-        dataset_lookup[uid]['uid'] = uid
-        dataset_lookup[uid]['evidence'] = candidate_evidence
-        dataset_lookup[uid]['status'] = False
-        dataset_lookup[uid]['evidence_paragraphs'] = []
+    for decomp in sample['decomposition']:
+        dataset_lookup[temp_uid] = copy.deepcopy(sample)
+        dataset_lookup[temp_uid]['uid'] = temp_uid
+        dataset_lookup[temp_uid]['focus'] = decomp
+        dataset_lookup[temp_uid]['evidence'] = list(candidate_evidence)
+        dataset_lookup[temp_uid]['status'] = False
+        dataset_lookup[temp_uid]['evidence_paragraphs'] = []
 
+        temp_uid += 1
 
 # Each user will have its own copy of the whole dataset
-ALL_DATA = {}
 for user in users:
     ALL_DATA[user] = copy.deepcopy(dataset_lookup)
 
@@ -95,7 +96,7 @@ with open(DATA_DESTINATION, 'r', encoding='utf-8') as f:
 
 print("All data are loaded into memory")
 
-
+##########################################################################
 class User(UserMixin):
     pass
 
@@ -149,9 +150,10 @@ def get_fresh_data(user, previous_uid=0):
 
     while user_item[uid]['status'] and uid >= work_range[0] and uid < work_range[1]:
         uid += 1
-    if not user_item[uid]['status'] and uid >= work_range[0] and uid < work_range[1]:
-        return uid
-    return -1
+    
+    return uid if not user_item[uid]['status'] and uid >= work_range[0] \
+        and uid < work_range[1] else -1
+        
 
 @app.route('/home')
 @fresh_login_required
@@ -198,7 +200,7 @@ def submit(user, uid, sample):
     with open(DATA_DESTINATION, 'a+', encoding='utf-8') as filed:
         data_sample = {
                         'user': user, 'id': qid, 'uid': uid, 
-                        'decomposition': sample['decomposition'], 
+                        'focus': sample['focus'], 
                         'evidence_paragraphs': annotations
                     }
         filed.write(json.dumps(data_sample, ensure_ascii=False) + '\n')
