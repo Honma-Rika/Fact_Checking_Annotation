@@ -26,6 +26,7 @@ dataset_lookup = {}
 ALL_DATA = {}
 dataset = None
 paragraphs = None
+previous_annotations = [''] * 10
 
 ###############################################
 DATA_PATH = './data/strategyqa_dataset/strategyqa_train.json'
@@ -56,7 +57,7 @@ with open(CORPUS_PATH, 'r') as f:
     paragraphs = json.load(f)
     
 temp_uid = 0
-for sample in dataset[:5]:
+for sample in dataset:
     # set status and original text by uid
     candidate_evidence = set()
     for annotation in sample['evidence']:
@@ -66,10 +67,10 @@ for sample in dataset[:5]:
                     for doc_id in item:
                         candidate_evidence.add(doc_id)
 
-    for decomp in sample['decomposition']:
+    for ind, decomp in enumerate(sample['decomposition']):
         dataset_lookup[temp_uid] = copy.deepcopy(sample)
         dataset_lookup[temp_uid]['uid'] = temp_uid
-        dataset_lookup[temp_uid]['focus'] = decomp
+        dataset_lookup[temp_uid]['focus'] = (ind, decomp)
         dataset_lookup[temp_uid]['evidence'] = list(candidate_evidence)
         dataset_lookup[temp_uid]['status'] = False
         dataset_lookup[temp_uid]['evidence_paragraphs'] = []
@@ -169,12 +170,19 @@ def home(previous_uid=0):
 
     # render this sample to frontend
     sample = ALL_DATA[cur_user][uid]
+    if not sample['focus'][0]:
+        global previous_annotations
+        previous_annotations = [''] * 10
+    
     documents = []
     for doc_id in sample['evidence']:
         title, passage = get_document(doc_id)
         documents.append({'id': doc_id, 'title': title, 'passage': passage})
     
-    return render_template('index.html', user=cur_user, uid=uid, sample=sample, documents=documents, count=query_user(cur_user)['count'])
+    return render_template('index.html', user=cur_user, uid=uid, sample=sample,
+                            documents=documents, count=query_user(cur_user)['count'],
+                            previous_annotations=previous_annotations, 
+                            interval = len(sample['decomposition']))
 
 @app.route('/<user>/<uid>/<sample>', methods=['POST'])
 def submit(user, uid, sample):
@@ -195,6 +203,9 @@ def submit(user, uid, sample):
     print('Data labeled: {}\t{}\t{}\t{}'.format(
         user, uid, qid, annotations))
 
+    reminder = annotations[0][1] if annotations else ''
+    reminder = reminder[:90] + '...' if len(reminder) >= 90 else reminder
+    previous_annotations[sample['focus'][0]] += reminder
 
     # Write to output file
     with open(DATA_DESTINATION, 'a+', encoding='utf-8') as filed:

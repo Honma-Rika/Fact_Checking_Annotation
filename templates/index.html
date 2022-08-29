@@ -12,31 +12,50 @@
     <link rel="stylesheet" href="../static/styles/index.css"/>
     <script type="text/javascript">
       function annotate_evidence(objButton){  
-          var doc_id = objButton.value;
-          // var textBox = document.getElementById("evidence-" + doc_id);
-          var div_doc = document.getElementById("div-" + doc_id);
-          var button = document.getElementById("add-text-button-" + doc_id);
-          // var hidden_value = document.getElementById("hidden-value-" + doc_id);
+          let doc_id = objButton.value;
+          // let textBox = document.getElementById("evidence-" + doc_id);
+          let div_doc = document.getElementById("div-" + doc_id);
+          let button = document.getElementById("add-text-button-" + doc_id);
+          let hidden_value = document.getElementById("hidden-value-" + doc_id);
+          let passage = document.getElementById("passage-" + doc_id);
           
           if (div_doc.style.display == 'none') {
-            // var selected_text = document.getSelection();
             // textBox.value = selected_text;
-            // hidden_value.value = objButton.doc_content;
-            div_doc.style.display = 'block';
             // button.style.backgroundColor = '#FFFFFA';
+
+            let selected_text = document.getSelection().toString();
+            if (!selected_text) {
+              hidden_value.value = passage.innerText;
+            }
+            else {
+              hidden_value.value = selected_text;
+            }
+            div_doc.style.display = 'block';
             button.style.color = '#1BB50C';
             button.innerHTML = '✔ Remove Evidence';
             console.log(button.innerHTML)
           }
           else {
             // textBox.value = "";
-            // hidden_value = "";
-            div_doc.style.display = 'none';
             // button.style.backgroundColor = '#FFFFFF';
+            hidden_value = "";
+            div_doc.style.display = 'none';
             button.style.color = '#000000';
             button.innerHTML = 'Select Evidence';
             console.log(button.innerHTML)
           }
+      }
+
+      function highlight_decomposition() {
+        let decomps = document.getElementsByClassName("decomps");
+        Array.from(decomps).forEach(single => {
+          let dataset = single.dataset;
+          if (dataset.index === dataset.tgt) {
+            let current_input = document.getElementById("decomposition-" + dataset.index);
+            current_input.style.backgroundColor = '#FAFAD2'
+            current_input.style.fontWeight = 'bold'
+          }
+        })
       }
     </script>
   </head>
@@ -101,8 +120,7 @@
         <!-- style="display:none"> -->
         <p><strong>Question:</strong> {{sample['question']}}</p>
         <p><strong>Answer:</strong> {{sample['answer']}}</p>
-        <!-- <p><strong>UID:</strong> {{sample['uid']}}</p> -->
-        <p><strong>Focus:</strong> {{sample['focus']}} [<span id="description-button">Show Me Details!</span>]</p>
+        <!-- <p><strong>Focus:</strong> {{sample['focus']}} [<span id="description-button">Show Me Details!</span>]</p> -->
         <!-- <strong>Decomposed Facts:</strong> <br/>
         {% for fact in sample['facts'] %}
             <p style="margin-left: 40px;">{{fact}}</p>
@@ -124,12 +142,18 @@
       <form class="form-signin" method="POST" action="{{ url_for('submit', user=user, uid=uid, sample=sample) }}">
         <!-- Textarea for the claim -->
         
-        <!-- <div class="input-group" id="select-question">
-          {% for decomp in sample['decomposition'] %}
-            <input class="editOption" class="editable" value="{{ decomp }}" disabled />
+        <div class="input-group" id="select-question">
+          {% for decomp_index in range(interval) %}
+            <input class="editOption" class="editable" id="decomposition-{{loop.index0}}" 
+              value="#{{loop.index0 + 1}} {{sample['decomposition'][decomp_index]}}        {{previous_annotations[decomp_index]}}" disabled />
+            <br />
+            <p class="decomps" data-index="{{loop.index0}}" data-tgt="{{sample['focus'][0]}}" style="display:none;"></p>
           {% endfor %}
+          <script type="text/javascript">
+            highlight_decomposition()
+          </script>
           <span class="input-group-addon"></span>
-        </div> -->
+        </div><br />
 
         <button id='submit' class="btn btn-default btn-lg btn-block" type="submit">Submit</button>
         <br/>
@@ -142,10 +166,11 @@
                 <button type="button" id="add-text-button-{{doc['id']}}" value="{{doc['id']}}" onclick="annotate_evidence(this)">Select Evidence</button>
               </span>
             </div>
-            <div class="panel-body">{{doc['passage']}}
+
+            <div class="panel-body" id="passage-{{doc['id']}}">{{doc['passage']}}
               <div id="div-{{doc['id']}}" style="display:none"><br/><em></em>
                 <textarea class="form-control" id="evidence-{{doc['id']}}" style="display:none" aria-label="Selected Evidence:" value="" disabled></textarea>
-                <input value="{{doc['passage']}}" type="hidden" name="{{doc['id']}}" id="hidden-value-{{doc['id']}}">
+                <input value="" type="hidden" name="{{doc['id']}}" id="hidden-value-{{doc['id']}}">
               </div>
             </div>
           </div>
