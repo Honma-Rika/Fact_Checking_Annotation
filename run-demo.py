@@ -221,4 +221,4 @@ def submit(user, uid, sample):
     return redirect(url_for('home', previous_uid=uid))
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=2022, threaded=True, debug=debug)
+    app.run(host="127.0.0.1", port=2022, threaded=True, debug=False)

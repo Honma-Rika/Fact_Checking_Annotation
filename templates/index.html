@@ -163,6 +163,15 @@
           <div class="panel panel-default">
             <div class="panel-heading">Title: <em>{{doc['title']}}</em>
               <span class="footnote-sm">
+                <!-- <form action="#"> -->
+                  <!-- <label for="choice">Choice</label> -->
+                  <select name="choices" id="choice">
+                    <option value="none">Select One</option>
+                    <option value="accept">Accept</option>
+                    <option value="refuse">Refuse</option>
+                  </select>
+                  <!-- <input type="submit" value="Submit" /> -->
+                <!-- </form> -->
                 <button type="button" id="add-text-button-{{doc['id']}}" value="{{doc['id']}}" onclick="annotate_evidence(this)">Select Evidence</button>
               </span>
             </div>
