@@ -18,31 +18,34 @@
           let button = document.getElementById("add-text-button-" + doc_id);
           let hidden_value = document.getElementById("hidden-value-" + doc_id);
           let passage = document.getElementById("passage-" + doc_id);
+          let choice = document.getElementById("choice-" + doc_id);
           
-          if (div_doc.style.display == 'none') {
-            // button.style.backgroundColor = '#FFFFFA';
-            let selected_text = document.getSelection().toString();
-            if (!selected_text) {
-              textBox.value = passage.innerText;
-              hidden_value.value = passage.innerText;
+          if (choice.value === '1') {
+            if (div_doc.style.display == 'none') {
+              // button.style.backgroundColor = '#FFFFFA';
+              let selected_text = document.getSelection().toString();
+              if (!selected_text) {
+                textBox.value = passage.innerText;
+                hidden_value.value = passage.innerText;
+              }
+              else {
+                textBox.value = selected_text;
+                hidden_value.value = selected_text;
+              }
+              div_doc.style.display = 'block';
+              button.style.color = '#1BB50C';
+              button.innerHTML = '✔ Remove Evidence';
+              console.log(button.innerHTML)
             }
             else {
-              textBox.value = selected_text;
-              hidden_value.value = selected_text;
+              // button.style.backgroundColor = '#FFFFFF';
+              textBox.value = "";
+              hidden_value = "";
+              div_doc.style.display = 'none';
+              button.style.color = '#000000';
+              button.innerHTML = 'Select Evidence';
+              console.log(button.innerHTML)
             }
-            div_doc.style.display = 'block';
-            button.style.color = '#1BB50C';
-            button.innerHTML = '✔ Remove Evidence';
-            console.log(button.innerHTML)
-          }
-          else {
-            // button.style.backgroundColor = '#FFFFFF';
-            textBox.value = "";
-            hidden_value = "";
-            div_doc.style.display = 'none';
-            button.style.color = '#000000';
-            button.innerHTML = 'Select Evidence';
-            console.log(button.innerHTML)
           }
       }
 
@@ -59,17 +62,16 @@
       }
 
       function check_selection() {
+        let is_complete = true;
         let selections = document.getElementsByClassName("selections");
-        Array.from(selections).forEach(single => {
-          let selection_value = single.value;
-          if (selection_value === "0") {
+        Array.from(selections).every(single => {
+          if (single.value === "0") {
             alert("Please select your attitudes towards all the evidence listed!");
+            is_complete = false;
           }
-          else {
-            // TODO: Check selections and evidence
-            form.submit();
-          }
-        })
+        });
+
+        return is_complete;
       }
     </script>
   </head>
@@ -153,7 +155,7 @@
       
       
 
-      <form class="form-signin" method="POST" action="{{ url_for('submit', user=user, uid=uid, sample=sample) }}">
+      <form class="form-signin" method="POST" id="myForm" action="{{ url_for('submit', user=user, uid=uid, sample=sample) }}" onsubmit="return check_selection()">
         <!-- Textarea for the claim -->
         
         <div class="input-group" id="select-question">
@@ -169,7 +171,7 @@
           <span class="input-group-addon"></span>
         </div><br />
 
-        <button id='submit' class="btn btn-default btn-lg btn-block" type="button" onclick="check_selection()">Submit</button>
+        <button id='submit' class="btn btn-default btn-lg btn-block" type="submit">Submit</button>
         <br/>
 
         <div id="answer">
@@ -180,9 +182,9 @@
                 <!-- <form action="#"> -->
                   <!-- <label for="choice">Choice</label> -->
                   <select class="selections" id="choice-{{doc['id']}}" value="0">
-                    <option value="0">Select One</option>
-                    <option value="1">Accept</option>
-                    <option value="2">Refuse</option>
+                    <option value="0">Select</option>
+                    <option value="1">Support</option>
+                    <option value="2">Refute</option>
                   </select>
                   <!-- <input type="submit" value="Submit" /> -->
                 <!-- </form> -->
@@ -193,7 +195,7 @@
             <div class="panel-body" id="passage-{{doc['id']}}">{{doc['passage']}}
               <div id="div-{{doc['id']}}" style="display:none"><br/><em></em>
                 <textarea class="form-control" id="evidence-{{doc['id']}}" aria-label="Selected Evidence:" value="" disabled></textarea>
-                <input value="" type="hidden" name="{{doc['id']}}" id="hidden-value-{{doc['id']}}">
+                <input value="" type="hidden" name="{{doc['id']}}" id="hidden-value-{{doc['id']}}" >
               </div>
             </div>
           </div>
